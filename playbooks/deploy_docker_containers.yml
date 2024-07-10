@@ -1,0 +1,70 @@
+- hosts: my_vm
+  become: yes
+  tasks:
+    - name: Pull MySQL Docker image for Bilal
+      community.docker.docker_image:
+        name: mysql
+        tag: latest
+        source: pull
+
+    - name: Run MySQL container for Bilal
+      community.docker.docker_container:
+        name: mysql-bilal
+        image: mysql:latest
+        state: started
+        env:
+          MYSQL_ROOT_PASSWORD: "root_password"
+          MYSQL_DATABASE: "zabbix"
+          MYSQL_USER: "zabbix"
+          MYSQL_PASSWORD: "zabbix"
+        ports:
+          - "3308:3306"
+        timeout: 300    
+
+    - name: Pull Zabbix Docker image for Bilal
+      community.docker.docker_image:
+        name: zabbix/zabbix-server-mysql
+        tag: latest
+        source: pull
+
+    - name: Run Zabbix container for Bilal
+      community.docker.docker_container:
+        name: zabbix-bilal
+        image: zabbix/zabbix-server-mysql:latest
+        state: started
+        ports:
+          - "8087:80"
+          - "10054:10051"
+        env:
+          DB_SERVER_HOST: "mysql-bilal"
+          MYSQL_USER: "zabbix"
+          MYSQL_PASSWORD: "zabbix"
+          MYSQL_DATABASE: "zabbix"
+
+    - name: Pull Nagios Docker image for Bilal
+      community.docker.docker_image:
+        name: jasonrivers/nagios
+        tag: latest
+        source: pull
+
+    - name: Run Nagios container for Bilal
+      community.docker.docker_container:
+        name: nagios-bilal
+        image: jasonrivers/nagios:latest
+        state: started
+        ports:
+          - "8088:80"
+
+    - name: Pull Prometheus Docker image for Bilal
+      community.docker.docker_image:
+        name: prom/prometheus
+        tag: v2.30.3
+        source: pull
+
+    - name: Run Prometheus container for Bilal
+      community.docker.docker_container:
+        name: prometheus-bilal
+        image: prom/prometheus:v2.30.3
+        state: started
+        ports:
+          - "8089:9090"
